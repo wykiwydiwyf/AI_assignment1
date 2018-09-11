@@ -117,6 +117,7 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+<<<<<<< Updated upstream
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
@@ -130,6 +131,13 @@
     <option name="y" value="8" />
     <option name="width" value="2696" />
     <option name="height" value="1584" />
+=======
+  <component name="ProjectFrameBounds">
+    <option name="x" value="394" />
+    <option name="y" value="15" />
+    <option name="width" value="1400" />
+    <option name="height" value="1000" />
+>>>>>>> Stashed changes
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">

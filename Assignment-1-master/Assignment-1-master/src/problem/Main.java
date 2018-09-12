@@ -20,7 +20,7 @@ public class Main {
         ProblemSpec ps = new ProblemSpec();
         try {
             ps.loadProblem("input1.txt");
-            //ps.loadSolution("output1.txt");
+            ps.loadSolution("output1.txt");
             /** The number of each type of obstacle **/
             int numMovingBoxes;
             int numMovingObstacles;
@@ -87,7 +87,39 @@ public class Main {
                 if (((boxMaxX + 0.001 == obsMinX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
                         || (boxMaxX + 0.001 == obsMinX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
                     coincide = true;
-                    continue;
+                    break;
+                }
+            }
+            for (StaticObstacle obs:staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+
+                //Test to Right
+                if (((boxMaxX + 0.001 == obsMinX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
+                        || (boxMaxX + 0.001 == obsMinX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
+                    coincide = true;
+                    break;
+                }
+            }
+            if (boxMaxX + 0.001 < 1&& coincide==false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(closestBox.getPos().getX()+0.001 , closestBox.getPos().getY());
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("E");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
+                    }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
                 }
             }
             for (Box box:unmovedBox) {
@@ -100,7 +132,38 @@ public class Main {
                 if (((boxMaxY + 0.001 == obsMinY && boxMaxX > obsMinX && boxMaxX < obsMaxX)
                         || (boxMaxY + 0.001 == obsMinY && boxMinX > obsMinX && boxMinX < obsMaxX))) {
                     coincide = true;
-                    continue;
+                    break;
+                }
+            }
+            for (StaticObstacle obs:staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+                //Test to Up
+                if (((boxMaxY +0.001 == obsMinY && boxMaxX >obsMinX && boxMaxX < obsMaxX)
+                        ||(boxMaxY +0.001 == obsMinY &&  boxMinX >obsMinX && boxMinX < obsMaxX))){
+                    coincide = true;
+                    break;
+                }
+            }
+            if (boxMaxY + 0.001 < 1&& coincide==false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(closestBox.getPos().getX() , closestBox.getPos().getY()+0.001);
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("N");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
+                    }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
                 }
             }
             for (Box box:unmovedBox) {
@@ -113,7 +176,38 @@ public class Main {
                 if (((boxMinX - 0.001 == obsMaxX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
                         || (boxMinX - 0.001 == obsMaxX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
                     coincide = true;
-                    continue;
+                    break;
+                }
+            }
+            for (StaticObstacle obs:staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+                //Test to Left
+                if (((boxMinX - 0.001 == obsMaxX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
+                        || (boxMinX - 0.001 == obsMaxX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
+                    coincide = true;
+                    break;
+                }
+            }
+            if (boxMaxX - 0.001 > 0&& coincide==false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(closestBox.getPos().getX()-0.001 , closestBox.getPos().getY());
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("W");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
+                    }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
                 }
             }
             for (Box box:unmovedBox) {
@@ -126,48 +220,7 @@ public class Main {
                 if (((boxMinY - 0.001 == obsMaxY && boxMaxX > obsMinX && boxMaxX < obsMaxX)
                         || (boxMinY - 0.001 == obsMaxY && boxMinX > obsMinX && boxMinX < obsMaxX))) {
                     coincide = true;
-                    continue;
-                }
-            }
-
-
-            for (StaticObstacle obs:staticObstacles) {
-
-                double obsMaxX = obs.getRect().getMaxX();
-                double obsMinX = obs.getRect().getMinX();
-                double obsMaxY = obs.getRect().getMaxY();
-                double obsMinY = obs.getRect().getMinY();
-
-                //Test to Right
-                if (((boxMaxX + 0.001 == obsMinX && boxMaxY > obsMinY && boxMaxY < obsMaxY) 
-                        || (boxMaxX + 0.001 == obsMinX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
-                    coincide = true;
-                    continue;
-                }
-            }
-            for (StaticObstacle obs:staticObstacles) {
-
-                double obsMaxX = obs.getRect().getMaxX();
-                double obsMinX = obs.getRect().getMinX();
-                double obsMaxY = obs.getRect().getMaxY();
-                double obsMinY = obs.getRect().getMinY();
-                //Test to Up
-                if (((boxMaxY +0.001 == obsMinY && boxMaxX >obsMinX && boxMaxX < obsMaxX)
-                        ||(boxMaxY +0.001 == obsMinY &&  boxMinX >obsMinX && boxMinX < obsMaxX))){
-                    coincide = true; continue;
-                }
-            }
-            for (StaticObstacle obs:staticObstacles) {
-
-                double obsMaxX = obs.getRect().getMaxX();
-                double obsMinX = obs.getRect().getMinX();
-                double obsMaxY = obs.getRect().getMaxY();
-                double obsMinY = obs.getRect().getMinY();
-                //Test to Left
-                if (((boxMinX - 0.001 == obsMaxX && boxMaxY > obsMinY && boxMaxY < obsMaxY) 
-                        || (boxMinX - 0.001 == obsMaxX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
-                    coincide = true;
-                    continue;
+                    break;
                 }
             }
             for (StaticObstacle obs:staticObstacles) {
@@ -179,24 +232,25 @@ public class Main {
                 //Test to Down
                 if (((boxMinY -0.001 == obsMaxY && boxMaxX >obsMinX && boxMaxX < obsMaxX)
                         ||(boxMinY -0.001 == obsMaxY &&  boxMinX >obsMinX && boxMinX < obsMaxX))){
-                    coincide = true; continue;
+                    coincide = true; break;
                 }
             }
-            if(coincide==false){
-                if (x+0.001<1) {
-                    MoveState newState = new MoveState();
-                    Point2D tempP=new Point2D.Double(x+0.001,y);
-                    newState.setArmLocation(tempP);
-                    newState.setMoveDirection("E");
-                    newState.setPreMoveState(State);
-                    boolean v=false;
-                    for(Point2D point:visited){
-                        if(isSamePoint(point,tempP)){v=true;}
+            if (boxMaxY - 0.001 > 0&& coincide==false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(closestBox.getPos().getX() , closestBox.getPos().getY()-0.001);
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("S");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
                     }
-                    if (v==false){
-                        RobotQueue.add(newState);
-                        visited.add(tempP);
-                    }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
                 }
             }
         }
@@ -211,7 +265,7 @@ public class Main {
 
         boolean coincide = false;
 
-        if (angle == 0) {//垂直的时候
+        if (angle == 1) {//垂直的时候
 
             double ArmMaxX = XCenter;
             double ArmMaxY = YCenter + 1 / 2 * width;
@@ -229,49 +283,8 @@ public class Main {
                 if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
                         || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
-                    continue;
+                    break;
                 }
-            }
-            for (Box box : unmovedBox) {
-
-                double obsMaxX = box.getPos().getX() + width;
-                double obsMinX = box.getPos().getX();
-                double obsMaxY = box.getPos().getY() + width;
-                double obsMinY = box.getPos().getY();
-                //Test to Up
-                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
-                    coincide = true;
-                    continue;
-                }
-            }
-            for (Box box : unmovedBox) {
-
-                double obsMaxX = box.getPos().getX() + width;
-                double obsMinX = box.getPos().getX();
-                double obsMaxY = box.getPos().getY() + width;
-                double obsMinY = box.getPos().getY();
-                //Test to Left
-                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
-                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
-                    coincide = true;
-                    continue;
-                }
-            }
-            for (Box box : unmovedBox) {
-
-                double obsMaxX = box.getPos().getX() + width;
-                double obsMinX = box.getPos().getX();
-                double obsMaxY = box.getPos().getY() + width;
-                double obsMinY = box.getPos().getY();
-                //Test to Down
-                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
-                    coincide = true;
-                    continue;
-                }
-
-
             }
             for (StaticObstacle obs : staticObstacles) {
 
@@ -285,7 +298,38 @@ public class Main {
                 if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
                         || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
-                    continue;
+                    break;
+                }
+            }
+            if (ArmMaxX + 0.001 < 1&& coincide == false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(XCenter +0.001, YCenter);
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("E");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
+                    }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Up
+                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    break;
                 }
             }
             for (StaticObstacle obs : staticObstacles) {
@@ -298,7 +342,38 @@ public class Main {
                 if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
                         || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
                     coincide = true;
-                    continue;
+                    break;
+                }
+            }
+            if (ArmMaxY + 0.001 < 1&& coincide==false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(XCenter, YCenter+0.001);
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("N");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
+                    }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Left
+                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                    coincide = true;
+                    break;
                 }
             }
             for (StaticObstacle obs : staticObstacles) {
@@ -311,7 +386,38 @@ public class Main {
                 if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
                         || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
-                    continue;
+                    break;
+                }
+            }
+            if (ArmMinX - 0.001 > 0&& coincide==false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(XCenter-0.001, YCenter);
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("W");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
+                    }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Down
+                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    break;
                 }
             }
             for (StaticObstacle obs : staticObstacles) {
@@ -321,30 +427,28 @@ public class Main {
                 double obsMaxY = obs.getRect().getMaxY();
                 double obsMinY = obs.getRect().getMinY();
                 //Test to Down
-                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                if (((ArmMinY - 0.001 != obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - 0.001 != obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
                     coincide = true;
-                    continue;
+                    break;
                 }
-
             }
-            if (coincide == false) {
-                if (XCenter + 0.001 < 1) {
-                    MoveState newState = new MoveState();
-                    Point2D tempP = new Point2D.Double(XCenter + 0.001, YCenter);
-                    newState.setArmLocation(tempP);
-                    newState.setMoveDirection("E");
-                    newState.setPreMoveState(State);
-                    boolean v = false;
-                    for (Point2D point : visited) {
-                        if (isSamePoint(point, tempP)) {
-                            v = true;
-                        }
+            if (ArmMinY - 0.001 > 0&& coincide==false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(XCenter , YCenter-0.001);
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("S");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
                     }
-                    if (v == false) {
-                        RobotQueue.add(newState);
-                        visited.add(tempP);
-                    }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
                 }
             }
         }
@@ -366,49 +470,8 @@ public class Main {
                 if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
                         || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
-                    continue;
+                    break;
                 }
-            }
-            for (Box box : unmovedBox) {
-
-                double obsMaxX = box.getPos().getX() + width;
-                double obsMinX = box.getPos().getX();
-                double obsMaxY = box.getPos().getY() + width;
-                double obsMinY = box.getPos().getY();
-                //Test to Up
-                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
-                    coincide = true;
-                    continue;
-                }
-            }
-            for (Box box : unmovedBox) {
-
-                double obsMaxX = box.getPos().getX() + width;
-                double obsMinX = box.getPos().getX();
-                double obsMaxY = box.getPos().getY() + width;
-                double obsMinY = box.getPos().getY();
-                //Test to Left
-                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
-                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
-                    coincide = true;
-                    continue;
-                }
-            }
-            for (Box box : unmovedBox) {
-
-                double obsMaxX = box.getPos().getX() + width;
-                double obsMinX = box.getPos().getX();
-                double obsMaxY = box.getPos().getY() + width;
-                double obsMinY = box.getPos().getY();
-                //Test to Down
-                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
-                    coincide = true;
-                    continue;
-                }
-
-
             }
             for (StaticObstacle obs : staticObstacles) {
 
@@ -422,7 +485,38 @@ public class Main {
                 if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
                         || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
-                    continue;
+                    break;
+                }
+            }
+            if (ArmMaxX + 0.001 < 1&& coincide == false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(XCenter +0.001, YCenter);
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("E");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
+                    }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Up
+                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    break;
                 }
             }
             for (StaticObstacle obs : staticObstacles) {
@@ -435,7 +529,38 @@ public class Main {
                 if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
                         || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
                     coincide = true;
-                    continue;
+                    break;
+                }
+            }
+            if (ArmMaxY + 0.001 < 1&& coincide==false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(XCenter, YCenter+0.001);
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("N");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
+                    }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Left
+                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                    coincide = true;
+                    break;
                 }
             }
             for (StaticObstacle obs : staticObstacles) {
@@ -448,7 +573,38 @@ public class Main {
                 if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
                         || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
-                    continue;
+                    break;
+                }
+            }
+            if (ArmMinX - 0.001 > 0&& coincide==false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(XCenter-0.001, YCenter);
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("W");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
+                    }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Down
+                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    break;
                 }
             }
             for (StaticObstacle obs : staticObstacles) {
@@ -460,24 +616,26 @@ public class Main {
                 //Test to Down
                 if (((ArmMinY - 0.001 != obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
                         || (ArmMinY - 0.001 != obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
-                    coincide = false;
-                    if (ArmMinY - 0.001 > 0) {
-                        MoveState newState = new MoveState();
-                        Point2D tempP = new Point2D.Double(XCenter , YCenter-0.001);
-                        newState.setArmLocation(tempP);
-                        newState.setMoveDirection("S");
-                        newState.setPreMoveState(State);
-                        boolean v = false;
-                        for (Point2D point : visited) {
-                            if (isSamePoint(point, tempP)) {
-                                v = true;
-                            }
-                        }
-                        if (v == false) {
-                            RobotQueue.add(newState);
-                            visited.add(tempP);
-                        }
+                    coincide = true;
+                    break;
+                }
+            }
+            if (ArmMinY - 0.001 > 0&& coincide==false) {
+                MoveState newState = new MoveState();
+                Point2D tempP = new Point2D.Double(XCenter , YCenter-0.001);
+                newState.setArmLocation(tempP);
+                newState.setMoveDirection("S");
+                newState.setPreMoveState(State);
+                boolean v = false;
+                for (Point2D point : visited) {
+                    if (isSamePoint(point, tempP)) {
+                        v = true;
+                        break;
                     }
+                }
+                if (v == false) {
+                    RobotQueue.add(newState);
+                    visited.add(tempP);
                 }
             }
         }

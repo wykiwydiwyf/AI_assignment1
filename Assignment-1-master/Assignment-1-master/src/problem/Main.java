@@ -67,7 +67,7 @@ public class Main {
     public List<Point2D>visited;
     public Queue<MoveState> RobotQueue;
 
-    public void BoxBFS(List<Box>movingBoxes, List<StaticObstacle>staticObstacles,  List<Point2D>movingBoxEndPositions, List<Box>movingObstacles){
+    public void BoxBFS(MoveState State,List<Box>movingBoxes, List<StaticObstacle>staticObstacles,  List<Point2D>movingBoxEndPositions, List<Box>movingObstacles){
         Boolean coincide = false;
         double width = closestBox.getWidth();
         double boxMaxX = closestBox.getPos().getX()+width;
@@ -84,7 +84,7 @@ public class Main {
                 double obsMinY = box.getPos().getY();
 
                 //Test to Right
-                if (((boxMaxX + 0.001 == obsMinX && boxMaxY > obsMinY && boxMaxY < obsMaxY) 
+                if (((boxMaxX + 0.001 == obsMinX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
                         || (boxMaxX + 0.001 == obsMinX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
                     coincide = true;
                     continue;
@@ -97,7 +97,7 @@ public class Main {
                 double obsMaxY = box.getPos().getY() + width;
                 double obsMinY = box.getPos().getY();
                 //Test to Up
-                if (((boxMaxY + 0.001 == obsMinY && boxMaxX > obsMinX && boxMaxX < obsMaxX) 
+                if (((boxMaxY + 0.001 == obsMinY && boxMaxX > obsMinX && boxMaxX < obsMaxX)
                         || (boxMaxY + 0.001 == obsMinY && boxMinX > obsMinX && boxMinX < obsMaxX))) {
                     coincide = true;
                     continue;
@@ -110,7 +110,7 @@ public class Main {
                 double obsMaxY = box.getPos().getY() + width;
                 double obsMinY = box.getPos().getY();
                 //Test to Left
-                if (((boxMinX - 0.001 == obsMaxX && boxMaxY > obsMinY && boxMaxY < obsMaxY) 
+                if (((boxMinX - 0.001 == obsMaxX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
                         || (boxMinX - 0.001 == obsMaxX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
                     coincide = true;
                     continue;
@@ -123,7 +123,7 @@ public class Main {
                 double obsMaxY = box.getPos().getY() + width;
                 double obsMinY = box.getPos().getY();
                 //Test to Down
-                if (((boxMinY - 0.001 == obsMaxY && boxMaxX > obsMinX && boxMaxX < obsMaxX) 
+                if (((boxMinY - 0.001 == obsMaxY && boxMaxX > obsMinX && boxMaxX < obsMaxX)
                         || (boxMinY - 0.001 == obsMaxY && boxMinX > obsMinX && boxMinX < obsMaxX))) {
                     coincide = true;
                     continue;
@@ -458,11 +458,28 @@ public class Main {
                 double obsMaxY = obs.getRect().getMaxY();
                 double obsMinY = obs.getRect().getMinY();
                 //Test to Down
-                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
-                    coincide = true;
-                    continue;
+                if (((ArmMinY - 0.001 != obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - 0.001 != obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = false;
+                    if (ArmMinY - 0.001 > 0) {
+                        MoveState newState = new MoveState();
+                        Point2D tempP = new Point2D.Double(XCenter , YCenter-0.001);
+                        newState.setArmLocation(tempP);
+                        newState.setMoveDirection("S");
+                        newState.setPreMoveState(State);
+                        boolean v = false;
+                        for (Point2D point : visited) {
+                            if (isSamePoint(point, tempP)) {
+                                v = true;
+                            }
+                        }
+                        if (v == false) {
+                            RobotQueue.add(newState);
+                            visited.add(tempP);
+                        }
+                    }
                 }
+            }
 
             }
             if (coincide == false) {

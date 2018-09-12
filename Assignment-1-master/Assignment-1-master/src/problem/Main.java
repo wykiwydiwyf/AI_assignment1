@@ -69,120 +69,123 @@ public class Main {
 
     public void BoxBFS(List<Box>movingBoxes, List<StaticObstacle>staticObstacles,  List<Point2D>movingBoxEndPositions, List<Box>movingObstacles){
         Boolean coincide = false;
+        double width = closestBox.getWidth();
+        double boxMaxX = closestBox.getPos().getX()+width;
+        double boxMinX = closestBox.getPos().getX();
+        double boxMaxY = closestBox.getPos().getY()+width;
+        double boxMinY = closestBox.getPos().getY();
+        while(closestBox.getPos().getX()!= movingBoxEndPositions.get(NumclosestBox).getX()&&closestBox.getPos().getY() != movingBoxEndPositions.get(NumclosestBox).getY()) {
 
-        for (Box box:unmovedBox){
+            for (Box box:unmovedBox) {
 
-            while(closestBox.getPos().getX()!= movingBoxEndPositions.get(NumclosestBox).getX()&&closestBox.getPos().getY() != movingBoxEndPositions.get(NumclosestBox).getY()) {
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
 
-                for (StaticObstacle obs:staticObstacles) {
-                    for (Box mobs:movingObstacles) {
-                        double width = closestBox.getWidth();
-
-                        double boxMaxX = closestBox.getPos().getX()+1/2*width;
-                        double boxMinX = closestBox.getPos().getX()-1/2*width;
-                        double boxMaxY = closestBox.getPos().getY()+1/2*width;
-                        double boxMinY = closestBox.getPos().getY()-1/2*width;
-
-                        double obsMaxX = obs.getRect().getMaxX();
-                        double obsMinX = obs.getRect().getMinX();
-                        double obsMaxY = obs.getRect().getMaxY();
-                        double obsMinY = obs.getRect().getMinY();
-
-                        double mobsMaxX = mobs.getRect().getMaxX();
-                        double mobsMinX = mobs.getRect().getMinX();
-                        double mobsMaxY = mobs.getRect().getMaxY();
-                        double mobsMinY = mobs.getRect().getMinY();
-                        //Test to Right
-                        if (((boxMaxX+0.001 >= obsMinX && boxMaxY >obsMinY && boxMaxY < obsMaxY)||(boxMaxX +0.001 >= obsMinX &&  boxMinY >obsMinY && boxMinY < obsMaxY))
-                                ||((boxMaxX+0.001 >= mobsMinX && boxMaxY >mobsMinY && boxMaxY < mobsMaxY)||(boxMaxX +0.001 >= mobsMinX &&  boxMinY >mobsMinY && boxMinY < mobsMaxY))){
-                            coincide = true; continue;
-                        }
-                        //Test to Up
-                        else if (((boxMaxY +0.001 >= obsMinY && boxMaxX >obsMinX && boxMaxX < obsMaxX)||(boxMaxY +0.001 >= obsMinY &&  boxMinX >obsMinX && boxMinX < obsMaxX))
-                                ||((boxMaxY +0.001 >= mobsMinY && boxMaxX >mobsMinX && boxMaxX < mobsMaxX)||(boxMaxY +0.001 >= mobsMinY &&  boxMinX >mobsMinX && boxMinX < mobsMaxX))){
-                            coincide = true; continue;
-                        }
-                        //Test to Left
-                        else if (((boxMinX -0.001 <= obsMaxX && boxMaxY >obsMinY && boxMaxY < obsMaxY)||(boxMinX -0.001 <= obsMaxX  &&  boxMinY >obsMinY && boxMinY < obsMaxY))
-                                ||((boxMinX -0.001 <= obsMaxX && boxMaxY >mobsMinY && boxMaxY < mobsMaxY)||(boxMinX -0.001 <= obsMaxX &&  boxMinY >mobsMinY && boxMinY < mobsMaxY))){
-                            coincide = true; continue;
-                        }
-                        //Test to Down
-                        else if (((boxMinY -0.001 <= obsMaxY && boxMaxX >obsMinX && boxMaxX < obsMaxX)||(boxMinY -0.001 <= obsMaxY &&  boxMinX >obsMinX && boxMinX < obsMaxX))
-                                ||((boxMinY -0.001 <= obsMaxY && boxMaxX >mobsMinX && boxMaxX < mobsMaxX)||(boxMinY -0.001 <= obsMaxY &&  boxMinX >mobsMinX && boxMinX < mobsMaxX))){
-                            coincide = true; continue;
-                        }
-                    }
+                //Test to Right
+                if (((boxMaxX + 0.001 == obsMinX && boxMaxY > obsMinY && boxMaxY < obsMaxY) 
+                        || (boxMaxX + 0.001 == obsMinX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
                 }
             }
-        }
-        if(coincide==false){
-            if (x+0.001<1) {
-                MoveState newState = new MoveState();
-                Point2D tempP=new Point2D.Double(x+0.001,y);
-                newState.setArmLocation(tempP);
-                newState.setMoveDirection("E");
-                newState.setPreMoveState(State);
-                boolean v=false;
-                for(Point2D point:visited){
-                    if(isSamePoint(point,tempP)){v=true;}
-                }
-                if (v==false){
-                    RobotQueue.add(newState);
-                    visited.add(tempP);
+            for (Box box:unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Up
+                if (((boxMaxY + 0.001 == obsMinY && boxMaxX > obsMinX && boxMaxX < obsMaxX) 
+                        || (boxMaxY + 0.001 == obsMinY && boxMinX > obsMinX && boxMinX < obsMaxX))) {
+                    coincide = true;
+                    continue;
                 }
             }
-        }
-    }
+            for (Box box:unmovedBox) {
 
-
-
-    public void ArmBFS(MoveState State, int angle,List<Box>movingBoxes, List<StaticObstacle>staticObstacles,  List<Point2D>movingBoxEndPositions, List<Box>movingObstacles){
-        double XCenter=State.getArmLocation().getX();
-        double YCenter=State.getArmLocation().getY();
-        double width= closestBox.getWidth();
-        if(angle==1) {//垂直的时候
-
-            double ArmMaxX = XCenter;
-            double ArmMaxY = YCenter + 1/2*width;
-            double ArmMinX = XCenter;
-            double ArmMinY = YCenter - 1/2*width;
-
-            boolean coincide=false;
-            for (Box box:unmovedBox){
-
-                for (StaticObstacle obs:staticObstacles) {
-
-
-                        double obsMaxX = obs.getRect().getMaxX();
-                        double obsMinX = obs.getRect().getMinX();
-                        double obsMaxY = obs.getRect().getMaxY();
-                        double obsMinY = obs.getRect().getMinY();
-
-
-                        //Test to Right
-                        if (((ArmMaxX+0.001 >= obsMinX && ArmMaxY >obsMinY && ArmMaxY < obsMaxY)||(ArmMaxX +0.001 >= obsMinX &&  ArmMinY >obsMinY && ArmMinY < obsMaxY))){
-                            coincide = true; continue;
-                        }
-                        //Test to Up
-                        else if (((ArmMaxY +0.001 >= obsMinY && ArmMaxX >obsMinX && ArmMaxX < obsMaxX)||(ArmMaxY +0.001 >= obsMinY &&  ArmMinX >obsMinX && ArmMinX < obsMaxX))){
-                            coincide = true; continue;
-                        }
-                        //Test to Left
-                        else if (((ArmMinX -0.001 <= obsMaxX && ArmMaxY >obsMinY && ArmMaxY < obsMaxY)||(ArmMinX -0.001 <= obsMaxX  &&  ArmMinY >obsMinY && ArmMinY < obsMaxY))){
-                            coincide = true; continue;
-                        }
-                        //Test to Down
-                        else if (((ArmMinY -0.001 <= obsMaxY && ArmMaxX >obsMinX && ArmMaxX < obsMaxX)||(ArmMinY -0.001 <= obsMaxY &&  ArmMinX >obsMinX && ArmMinX < obsMaxX))){
-                            coincide = true; continue;
-                    }
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Left
+                if (((boxMinX - 0.001 == obsMaxX && boxMaxY > obsMinY && boxMaxY < obsMaxY) 
+                        || (boxMinX - 0.001 == obsMaxX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
                 }
+            }
+            for (Box box:unmovedBox) {
 
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Down
+                if (((boxMinY - 0.001 == obsMaxY && boxMaxX > obsMinX && boxMaxX < obsMaxX) 
+                        || (boxMinY - 0.001 == obsMaxY && boxMinX > obsMinX && boxMinX < obsMaxX))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+
+
+            for (StaticObstacle obs:staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+
+                //Test to Right
+                if (((boxMaxX + 0.001 == obsMinX && boxMaxY > obsMinY && boxMaxY < obsMaxY) 
+                        || (boxMaxX + 0.001 == obsMinX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (StaticObstacle obs:staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+                //Test to Up
+                if (((boxMaxY +0.001 == obsMinY && boxMaxX >obsMinX && boxMaxX < obsMaxX)
+                        ||(boxMaxY +0.001 == obsMinY &&  boxMinX >obsMinX && boxMinX < obsMaxX))){
+                    coincide = true; continue;
+                }
+            }
+            for (StaticObstacle obs:staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+                //Test to Left
+                if (((boxMinX - 0.001 == obsMaxX && boxMaxY > obsMinY && boxMaxY < obsMaxY) 
+                        || (boxMinX - 0.001 == obsMaxX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (StaticObstacle obs:staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+                //Test to Down
+                if (((boxMinY -0.001 == obsMaxY && boxMaxX >obsMinX && boxMaxX < obsMaxX)
+                        ||(boxMinY -0.001 == obsMaxY &&  boxMinX >obsMinX && boxMinX < obsMaxX))){
+                    coincide = true; continue;
+                }
             }
             if(coincide==false){
-                if (XCenter+0.001<1) {
+                if (x+0.001<1) {
                     MoveState newState = new MoveState();
-                    Point2D tempP=new Point2D.Double(XCenter+0.001,YCenter);
+                    Point2D tempP=new Point2D.Double(x+0.001,y);
                     newState.setArmLocation(tempP);
                     newState.setMoveDirection("E");
                     newState.setPreMoveState(State);
@@ -197,8 +200,293 @@ public class Main {
                 }
             }
         }
-
     }
+
+
+
+    public void ArmBFS(MoveState State, int angle,List<Box>movingBoxes, List<StaticObstacle>staticObstacles,  List<Point2D>movingBoxEndPositions, List<Box>movingObstacles){
+        double XCenter=State.getArmLocation().getX();
+        double YCenter=State.getArmLocation().getY();
+        double width= closestBox.getWidth();
+
+        boolean coincide = false;
+
+        if (angle == 0) {//垂直的时候
+
+            double ArmMaxX = XCenter;
+            double ArmMaxY = YCenter + 1 / 2 * width;
+            double ArmMinX = XCenter;
+            double ArmMinY = YCenter - 1 / 2 * width;
+
+            coincide = false;
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Right
+                if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Up
+                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Left
+                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Down
+                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    continue;
+                }
+
+
+            }
+            for (StaticObstacle obs : staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+
+
+                //Test to Right
+                if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (StaticObstacle obs : staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+                //Test to Up
+                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (StaticObstacle obs : staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+                //Test to Left
+                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (StaticObstacle obs : staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+                //Test to Down
+                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    continue;
+                }
+
+            }
+            if (coincide == false) {
+                if (XCenter + 0.001 < 1) {
+                    MoveState newState = new MoveState();
+                    Point2D tempP = new Point2D.Double(XCenter + 0.001, YCenter);
+                    newState.setArmLocation(tempP);
+                    newState.setMoveDirection("E");
+                    newState.setPreMoveState(State);
+                    boolean v = false;
+                    for (Point2D point : visited) {
+                        if (isSamePoint(point, tempP)) {
+                            v = true;
+                        }
+                    }
+                    if (v == false) {
+                        RobotQueue.add(newState);
+                        visited.add(tempP);
+                    }
+                }
+            }
+        }
+        if (angle == 0) {//平行的时候
+
+            double ArmMaxX = XCenter + 1 / 2 * width;
+            double ArmMaxY = YCenter;
+            double ArmMinX = XCenter - 1 / 2 * width;
+            double ArmMinY = YCenter;
+
+            coincide = false;
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Right
+                if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Up
+                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Left
+                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (Box box : unmovedBox) {
+
+                double obsMaxX = box.getPos().getX() + width;
+                double obsMinX = box.getPos().getX();
+                double obsMaxY = box.getPos().getY() + width;
+                double obsMinY = box.getPos().getY();
+                //Test to Down
+                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    continue;
+                }
+
+
+            }
+            for (StaticObstacle obs : staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+
+
+                //Test to Right
+                if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (StaticObstacle obs : staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+                //Test to Up
+                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (StaticObstacle obs : staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+                //Test to Left
+                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                    coincide = true;
+                    continue;
+                }
+            }
+            for (StaticObstacle obs : staticObstacles) {
+
+                double obsMaxX = obs.getRect().getMaxX();
+                double obsMinX = obs.getRect().getMinX();
+                double obsMaxY = obs.getRect().getMaxY();
+                double obsMinY = obs.getRect().getMinY();
+                //Test to Down
+                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                    coincide = true;
+                    continue;
+                }
+
+            }
+            if (coincide == false) {
+                if (XCenter + 0.001 < 1) {
+                    MoveState newState = new MoveState();
+                    Point2D tempP = new Point2D.Double(XCenter + 0.001, YCenter);
+                    newState.setArmLocation(tempP);
+                    newState.setMoveDirection("E");
+                    newState.setPreMoveState(State);
+                    boolean v = false;
+                    for (Point2D point : visited) {
+                        if (isSamePoint(point, tempP)) {
+                            v = true;
+                        }
+                    }
+                    if (v == false) {
+                        RobotQueue.add(newState);
+                        visited.add(tempP);
+                    }
+                }
+            }
+        }
+    }
+
     
     
     
@@ -210,6 +498,10 @@ public class Main {
     public static boolean isGoal(MoveState state,Point2D point){
         if(isSamePoint(state.getArmLocation(),point)){return true;}
         return false;
+    }
+
+    public void mergeList(List<Box> list1,List<Box> list2){
+        list1.addAll(list2);
     }
 
     //Queue

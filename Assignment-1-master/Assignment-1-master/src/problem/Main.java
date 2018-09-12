@@ -10,7 +10,7 @@ import java.util.Stack;
 
 public class Main {
 
-    List<StaticObstacle>staticObstacles;
+    static List<StaticObstacle>staticObstacles;
 
     public static void main(String[] args) {
         //output file
@@ -477,27 +477,6 @@ public class Main {
                             RobotQueue.add(newState);
                             visited.add(tempP);
                         }
-                    }
-                }
-            }
-
-            }
-            if (coincide == false) {
-                if (XCenter + 0.001 < 1) {
-                    MoveState newState = new MoveState();
-                    Point2D tempP = new Point2D.Double(XCenter + 0.001, YCenter);
-                    newState.setArmLocation(tempP);
-                    newState.setMoveDirection("E");
-                    newState.setPreMoveState(State);
-                    boolean v = false;
-                    for (Point2D point : visited) {
-                        if (isSamePoint(point, tempP)) {
-                            v = true;
-                        }
-                    }
-                    if (v == false) {
-                        RobotQueue.add(newState);
-                        visited.add(tempP);
                     }
                 }
             }

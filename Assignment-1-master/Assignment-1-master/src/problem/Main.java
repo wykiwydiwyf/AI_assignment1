@@ -8,7 +8,7 @@ import java.util.*;
 import java.util.List;
 
 public class Main {
-
+    public static double movingUnit = 0.001;
     public static List<StaticObstacle>staticObstacles;
     public static List<Box>movingBoxes;
     public static List<Box>movingObstacles;
@@ -24,6 +24,15 @@ public class Main {
     public static double width;
     public static Point2D ArmNewEndPos;
     public static List<Box>movedBoxes;
+
+    public static List<Box> unmovedBox;
+    public static List<Point2D>visited;
+    public static LinkedList<MoveState> RobotQueue;
+    public static LinkedList<MoveState> BoxQueue;
+    public static Point2D tempP;
+
+    public static MoveState newState;
+
 
     public static void main(String[] args) {
         //output file
@@ -45,7 +54,7 @@ public class Main {
         } catch (IOException e) {
             System.out.println("IO Exception occured");
         }
-        System.out.println("Finished loading!");
+        System.out.println("Started Solving!");
 
 
         /* While非空
@@ -79,6 +88,7 @@ public class Main {
         BoxQueue = new LinkedList<MoveState>();
         RobotQueue = new LinkedList<MoveState>();
 
+
         movedBoxes = new LinkedList<Box>();
         findClosestBox(movingBoxes,InitialRobotConfig);
         Point2D goal_pos = movingBoxEndPositions.get(NumClosestBox);
@@ -89,24 +99,36 @@ public class Main {
         IniBox.setArmLocation(closestBox.getPos());
         IniBox.setMoveDirection(null);
         IniBox.setPreMoveState(null);
+        MoveState IniBot = new MoveState();
+        IniBot.setArmLocation(InitialRobotConfig.getPos());
+        IniBot.setPreMoveState(null);
+        IniBot.setMoveDirection(null);
         BoxQueue.add(IniBox);
-
+        RobotQueue.add(IniBot);
+        LinkedList<String> path = new LinkedList<>();
+        LinkedList<List> PathList = new LinkedList<>();
 
         while (movingBoxes.size()>0){
 
+            List<Box> unmovedBox = new LinkedList<>();
+            visited = new ArrayList<>();
             mergeList(unmovedBox,movingBoxes,movingObstacles,movedBoxes);
-            if (!unmovedBox.isEmpty()){
-                unmovedBox.clear();}
+            visited.add(IniBox.getArmLocation());
             while (!BoxQueue.isEmpty()) {
 
                 MoveState state = BoxQueue.poll();
                 if (isSamePoint(state.getArmLocation(), goal_pos)) {
-                    LinkedList<String> path = new LinkedList<String>();
+
                     output(state, path);
                     PathList.add(path);
+
+                    System.out.println("Found goal for Box 1");
                     break;
-                } else {
-                    BoxBFS(state);
+                }
+
+                else {
+                    System.out.println(state.getArmLocation());
+                    BoxBFS(state,unmovedBox);
                 }
             }
             if (path.getLast().equals("N")){
@@ -126,7 +148,7 @@ public class Main {
                 int NewAngle = 1;
             }
 
-            if (Math.abs(InitialRobotConfig.getOrientation())-1/2*Math.PI < 0.1) {
+            if (Math.abs(InitialRobotConfig.getOrientation())-1/2*Math.PI < 0.1) {//如果臂垂直并且初始运动方向为东西
                 MoveState ArmState = new MoveState();
                 ArmState.setArmLocation(InitialRobotConfig.getPos());
                 if (path.getFirst().equals("W") || path.getFirst().equals("E")) {
@@ -135,89 +157,89 @@ public class Main {
                         if (path.getFirst().equals("N")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width / 2, closestBox.getPos().getY());
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 1);
+                                ArmBFS(unmovedBox,state, 1);
                             }
                         } else if (path.getFirst().equals("E")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX(), closestBox.getPos().getY() + width / 2);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 1);
+                                ArmBFS(unmovedBox,state, 1);
                             }
                         } else if (path.getFirst().equals("S")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width / 2, closestBox.getPos().getY() + width);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 1);
+                                ArmBFS(unmovedBox,state, 1);
                             }
                         } else if (path.getFirst().equals("W")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width, closestBox.getPos().getY() + width / 2);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 1);
+                                ArmBFS(unmovedBox,state, 1);
                             }
                         }
                     }
 
                 }
-                else{ rotateRobot();//如果臂垂直并且初始运动方向为东西
+                else{ //rotateRobot();//如果臂垂直并且初始运动方向为南北
                     while (!RobotQueue.isEmpty()) {
                         MoveState state = RobotQueue.poll();
                         if (path.getFirst().equals("N")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width / 2, closestBox.getPos().getY());
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 0);
+                                ArmBFS(unmovedBox,state, 0);
                             }
                         } else if (path.getFirst().equals("E")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX(), closestBox.getPos().getY() + width / 2);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 0);
+                                ArmBFS(unmovedBox,state, 0);
                             }
                         } else if (path.getFirst().equals("S")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width / 2, closestBox.getPos().getY() + width);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 0);
+                                ArmBFS(unmovedBox,state, 0);
                             }
                         } else if (path.getFirst().equals("W")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width, closestBox.getPos().getY() + width / 2);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 0);
+                                ArmBFS(unmovedBox,state, 0);
                             }
                         }
                     }
@@ -225,97 +247,101 @@ public class Main {
 
                 }
             }
+
             if (Math.abs(InitialRobotConfig.getOrientation())< 0.1) {
                 MoveState ArmState = new MoveState();
                 ArmState.setArmLocation(InitialRobotConfig.getPos());
+                //Robot arm is horizontal and moving upward or downward
                 if (path.getFirst().equals("N") || path.getFirst().equals("S")) {
                     while (!RobotQueue.isEmpty()) {
                         MoveState state = RobotQueue.poll();
                         if (path.getFirst().equals("N")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width / 2, closestBox.getPos().getY());
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 0);
+                                ArmBFS(unmovedBox,state, 0);
                             }
                         } else if (path.getFirst().equals("E")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX(), closestBox.getPos().getY() + width / 2);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 0);
+                                ArmBFS(unmovedBox,state, 0);
                             }
                         } else if (path.getFirst().equals("S")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width / 2, closestBox.getPos().getY() + width);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 0);
+                                ArmBFS(unmovedBox,state, 0);
                             }
                         } else if (path.getFirst().equals("W")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width, closestBox.getPos().getY() + width / 2);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 0);
+                                ArmBFS(unmovedBox,state, 0);
                             }
                         }
                     }
                 }
+                //Robot arm is horizontal and moving leftward or rightward
                 else {
                     while (!RobotQueue.isEmpty()) {
                         MoveState state = RobotQueue.poll();
                         if (path.getFirst().equals("N")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width / 2, closestBox.getPos().getY());
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 1);
+
+                                ArmBFS(unmovedBox,state, 1);
                             }
                         } else if (path.getFirst().equals("E")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX(), closestBox.getPos().getY() + width / 2);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 1);
+                                ArmBFS(unmovedBox,state, 1);
                             }
                         } else if (path.getFirst().equals("S")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width / 2, closestBox.getPos().getY() + width);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 1);
+                                ArmBFS(unmovedBox,state, 1);
                             }
                         } else if (path.getFirst().equals("W")) {
                             Point2D ArmEndPos = new Point2D.Double(closestBox.getPos().getX() + width, closestBox.getPos().getY() + width / 2);
                             if (isSamePoint(state.getArmLocation(), ArmEndPos)) {
-                                LinkedList<String> path = new LinkedList<String>();
+                                 path = new LinkedList<String>();
                                 output(state, path);
                                 PathList.add(path);
                                 break;
                             } else {
-                                ArmBFS(state, 1);
+                                ArmBFS(unmovedBox,state, 1);
                             }
                         }
                     }
@@ -386,27 +412,25 @@ public class Main {
         }
     }
 
-    public static List<Box> unmovedBox;
-    public static List<Point2D>visited;
-    public static LinkedList<MoveState> RobotQueue;
-    public static LinkedList<MoveState> BoxQueue;
-
-    public static void BoxBFS(MoveState State){
+    public static void BoxBFS(MoveState State,List<Box> unmovedBox){
         Boolean coincide = false;
-        double boxMaxX = closestBox.getPos().getX()+width;
-        double boxMinX = closestBox.getPos().getX();
-        double boxMaxY = closestBox.getPos().getY()+width;
-        double boxMinY = closestBox.getPos().getY();
-        for (Box box:unmovedBox) {
 
+        double boxMaxX = State.getArmLocation().getX()+width;
+        double boxMinX = State.getArmLocation().getX();
+        double boxMaxY = State.getArmLocation().getY()+width;
+        double boxMinY = State.getArmLocation().getY();
+
+
+        Point2D tempP = new Point2D.Double(State.getArmLocation().getX() , State.getArmLocation().getY());
+        for (Box box:unmovedBox) {
             double obsMaxX = box.getPos().getX() + width;
             double obsMinX = box.getPos().getX();
             double obsMaxY = box.getPos().getY() + width;
             double obsMinY = box.getPos().getY();
 
             //Test to Right
-            if (((boxMaxX + 0.001 == obsMinX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
-                    || (boxMaxX + 0.001 == obsMinX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
+            if (((boxMaxX + movingUnit == obsMinX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
+                    || (boxMaxX + movingUnit == obsMinX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
                 coincide = true;
                 break;
             }
@@ -419,21 +443,24 @@ public class Main {
             double obsMinY = obs.getRect().getMinY();
 
             //Test to Right
-            if (((boxMaxX + 0.001 == obsMinX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
-                    || (boxMaxX + 0.001 == obsMinX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
+            if (((boxMaxX + movingUnit == obsMinX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
+                    || (boxMaxX + movingUnit == obsMinX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
                 coincide = true;
                 break;
             }
         }
-        if (boxMaxX + 0.001 < 1&& coincide==false) {
+        if (boxMaxX + movingUnit < 1&& coincide==false) {
             MoveState newState = new MoveState();
-            Point2D tempP = new Point2D.Double(closestBox.getPos().getX()+0.001 , closestBox.getPos().getY());
+            double TempProundX = round(tempP.getX()+movingUnit,3);
+            double TempProundY = round(tempP.getY(),3);
+            tempP = new Point2D.Double(TempProundX,TempProundY);
             newState.setArmLocation(tempP);
             newState.setMoveDirection("E");
             newState.setPreMoveState(State);
+
             boolean v = false;
-            for (Point2D point : visited) {
-                if (isSamePoint(point, tempP)) {
+            for (int i=0;i< visited.size();i++) {
+                if (isSamePoint(visited.get(i), tempP)) {
                     v = true;
                     break;
                 }
@@ -450,8 +477,8 @@ public class Main {
             double obsMaxY = box.getPos().getY() + width;
             double obsMinY = box.getPos().getY();
             //Test to Up
-            if (((boxMaxY + 0.001 == obsMinY && boxMaxX > obsMinX && boxMaxX < obsMaxX)
-                    || (boxMaxY + 0.001 == obsMinY && boxMinX > obsMinX && boxMinX < obsMaxX))) {
+            if (((boxMaxY + movingUnit == obsMinY && boxMaxX > obsMinX && boxMaxX < obsMaxX)
+                    || (boxMaxY + movingUnit == obsMinY && boxMinX > obsMinX && boxMinX < obsMaxX))) {
                 coincide = true;
                 break;
             }
@@ -463,21 +490,23 @@ public class Main {
             double obsMaxY = obs.getRect().getMaxY();
             double obsMinY = obs.getRect().getMinY();
             //Test to Up
-            if (((boxMaxY +0.001 == obsMinY && boxMaxX >obsMinX && boxMaxX < obsMaxX)
-                    ||(boxMaxY +0.001 == obsMinY &&  boxMinX >obsMinX && boxMinX < obsMaxX))){
+            if (((boxMaxY +movingUnit == obsMinY && boxMaxX >obsMinX && boxMaxX < obsMaxX)
+                    ||(boxMaxY +movingUnit == obsMinY &&  boxMinX >obsMinX && boxMinX < obsMaxX))){
                 coincide = true;
                 break;
             }
         }
-        if (boxMaxY + 0.001 < 1&& coincide==false) {
+        if (boxMaxY + movingUnit < 1&& coincide==false) {
             MoveState newState = new MoveState();
-            Point2D tempP = new Point2D.Double(closestBox.getPos().getX() , closestBox.getPos().getY()+0.001);
+            double TempProundX = round(tempP.getX(),3);
+            double TempProundY = round(tempP.getY()+movingUnit,3);
+            tempP = new Point2D.Double(TempProundX,TempProundY);
             newState.setArmLocation(tempP);
             newState.setMoveDirection("N");
             newState.setPreMoveState(State);
             boolean v = false;
-            for (Point2D point : visited) {
-                if (isSamePoint(point, tempP)) {
+            for (int i=0;i< visited.size();i++) {
+                if (isSamePoint(visited.get(i), tempP)) {
                     v = true;
                     break;
                 }
@@ -494,8 +523,8 @@ public class Main {
             double obsMaxY = box.getPos().getY() + width;
             double obsMinY = box.getPos().getY();
             //Test to Left
-            if (((boxMinX - 0.001 == obsMaxX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
-                    || (boxMinX - 0.001 == obsMaxX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
+            if (((boxMinX - movingUnit == obsMaxX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
+                    || (boxMinX - movingUnit == obsMaxX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
                 coincide = true;
                 break;
             }
@@ -507,21 +536,23 @@ public class Main {
             double obsMaxY = obs.getRect().getMaxY();
             double obsMinY = obs.getRect().getMinY();
             //Test to Left
-            if (((boxMinX - 0.001 == obsMaxX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
-                    || (boxMinX - 0.001 == obsMaxX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
+            if (((boxMinX - movingUnit == obsMaxX && boxMaxY > obsMinY && boxMaxY < obsMaxY)
+                    || (boxMinX - movingUnit == obsMaxX && boxMinY > obsMinY && boxMinY < obsMaxY))) {
                 coincide = true;
                 break;
             }
         }
-        if (boxMaxX - 0.001 > 0&& coincide==false) {
+        if (boxMinX - movingUnit > 0&& coincide==false) {
             MoveState newState = new MoveState();
-            Point2D tempP = new Point2D.Double(closestBox.getPos().getX()-0.001 , closestBox.getPos().getY());
+            double TempProundX = round(tempP.getX()-movingUnit,3);
+            double TempProundY = round(tempP.getY(),3);
+            tempP = new Point2D.Double(TempProundX,TempProundY);
             newState.setArmLocation(tempP);
             newState.setMoveDirection("W");
             newState.setPreMoveState(State);
             boolean v = false;
-            for (Point2D point : visited) {
-                if (isSamePoint(point, tempP)) {
+            for (int i=0;i< visited.size();i++) {
+                if (isSamePoint(visited.get(i), tempP)) {
                     v = true;
                     break;
                 }
@@ -533,17 +564,19 @@ public class Main {
         }
         for (Box box:unmovedBox) {
 
+
             double obsMaxX = box.getPos().getX() + width;
             double obsMinX = box.getPos().getX();
             double obsMaxY = box.getPos().getY() + width;
             double obsMinY = box.getPos().getY();
             //Test to Down
-            if (((boxMinY - 0.001 == obsMaxY && boxMaxX > obsMinX && boxMaxX < obsMaxX)
-                    || (boxMinY - 0.001 == obsMaxY && boxMinX > obsMinX && boxMinX < obsMaxX))) {
+            if (((boxMinY - movingUnit == obsMaxY && boxMaxX > obsMinX && boxMaxX < obsMaxX)
+                    || (boxMinY - movingUnit == obsMaxY && boxMinX > obsMinX && boxMinX < obsMaxX))) {
                 coincide = true;
                 break;
             }
         }
+
         for (StaticObstacle obs:staticObstacles) {
 
             double obsMaxX = obs.getRect().getMaxX();
@@ -551,20 +584,23 @@ public class Main {
             double obsMaxY = obs.getRect().getMaxY();
             double obsMinY = obs.getRect().getMinY();
             //Test to Down
-            if (((boxMinY -0.001 == obsMaxY && boxMaxX >obsMinX && boxMaxX < obsMaxX)
-                    ||(boxMinY -0.001 == obsMaxY &&  boxMinX >obsMinX && boxMinX < obsMaxX))){
+            if (((boxMinY -movingUnit == obsMaxY && boxMaxX >obsMinX && boxMaxX < obsMaxX)
+                    ||(boxMinY -movingUnit == obsMaxY &&  boxMinX >obsMinX && boxMinX < obsMaxX))){
                 coincide = true; break;
             }
         }
-        if (boxMaxY - 0.001 > 0&& coincide==false) {
+
+        if (boxMinY - movingUnit > 0&& coincide==false) {
             MoveState newState = new MoveState();
-            Point2D tempP = new Point2D.Double(closestBox.getPos().getX() , closestBox.getPos().getY()-0.001);
+            double TempProundX = round(tempP.getX(),3);
+            double TempProundY = round(tempP.getY()-movingUnit,3);
+            tempP = new Point2D.Double(TempProundX,TempProundY);
             newState.setArmLocation(tempP);
             newState.setMoveDirection("S");
             newState.setPreMoveState(State);
             boolean v = false;
-            for (Point2D point : visited) {
-                if (isSamePoint(point, tempP)) {
+            for (int i=0;i< visited.size();i++) {
+                if (isSamePoint(visited.get(i), tempP)) {
                     v = true;
                     break;
                 }
@@ -579,12 +615,12 @@ public class Main {
 
 
 
-    public static void ArmBFS(MoveState State, int angle){
-        double XCenter=State.getArmLocation().getX();
-        double YCenter=State.getArmLocation().getY();
+    public static void ArmBFS(List<Box> unmovedBox, MoveState State, int angle){
+        double XCenter=round(State.getArmLocation().getX(),3);
+        double YCenter=round(State.getArmLocation().getY(),3);
 
         boolean coincide = false;
-
+        System.out.println(State.getArmLocation());
         if (angle == 1) {//垂直的时候
 
             double ArmMaxX = XCenter;
@@ -600,8 +636,8 @@ public class Main {
                 double obsMaxY = box.getPos().getY() + width;
                 double obsMinY = box.getPos().getY();
                 //Test to Right
-                if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
-                        || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                if (((ArmMaxX + movingUnit == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMaxX + movingUnit == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
                     break;
                 }
@@ -615,15 +651,17 @@ public class Main {
 
 
                 //Test to Right
-                if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
-                        || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                if (((ArmMaxX + movingUnit == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMaxX + movingUnit == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
                     break;
                 }
             }
-            if (ArmMaxX + 0.001 < 1&& coincide == false) {
+            if (ArmMaxX + movingUnit < 1&& coincide == false) {
                 MoveState newState = new MoveState();
-                Point2D tempP = new Point2D.Double(XCenter +0.001, YCenter);
+                double tempPposX = round(XCenter +movingUnit,3);
+                double tempPposY = round(YCenter,3);
+                Point2D tempP = new Point2D.Double(tempPposX, tempPposY);
                 newState.setArmLocation(tempP);
                 newState.setMoveDirection("E");
                 newState.setPreMoveState(State);
@@ -646,8 +684,8 @@ public class Main {
                 double obsMaxY = box.getPos().getY() + width;
                 double obsMinY = box.getPos().getY();
                 //Test to Up
-                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                if (((ArmMaxY + movingUnit == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMaxY + movingUnit == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
                     coincide = true;
                     break;
                 }
@@ -659,15 +697,17 @@ public class Main {
                 double obsMaxY = obs.getRect().getMaxY();
                 double obsMinY = obs.getRect().getMinY();
                 //Test to Up
-                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                if (((ArmMaxY + movingUnit == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMaxY + movingUnit == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
                     coincide = true;
                     break;
                 }
             }
-            if (ArmMaxY + 0.001 < 1&& coincide==false) {
+            if (ArmMaxY + movingUnit < 1&& coincide==false) {
                 MoveState newState = new MoveState();
-                Point2D tempP = new Point2D.Double(XCenter, YCenter+0.001);
+                double tempPposX = round(XCenter,3);
+                double tempPposY = round(YCenter+movingUnit,3);
+                Point2D tempP = new Point2D.Double(tempPposX, tempPposY);
                 newState.setArmLocation(tempP);
                 newState.setMoveDirection("N");
                 newState.setPreMoveState(State);
@@ -690,8 +730,8 @@ public class Main {
                 double obsMaxY = box.getPos().getY() + width;
                 double obsMinY = box.getPos().getY();
                 //Test to Left
-                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
-                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                if (((ArmMinX - movingUnit == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMinX - movingUnit == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
                     break;
                 }
@@ -703,15 +743,17 @@ public class Main {
                 double obsMaxY = obs.getRect().getMaxY();
                 double obsMinY = obs.getRect().getMinY();
                 //Test to Left
-                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
-                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                if (((ArmMinX - movingUnit == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMinX - movingUnit == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
                     break;
                 }
             }
-            if (ArmMinX - 0.001 > 0&& coincide==false) {
+            if (ArmMinX - movingUnit > 0&& coincide==false) {
                 MoveState newState = new MoveState();
-                Point2D tempP = new Point2D.Double(XCenter-0.001, YCenter);
+                double tempPposX = round(XCenter-movingUnit,3);
+                double tempPposY = round(YCenter,3);
+                Point2D tempP = new Point2D.Double(tempPposX, tempPposY);
                 newState.setArmLocation(tempP);
                 newState.setMoveDirection("W");
                 newState.setPreMoveState(State);
@@ -734,8 +776,8 @@ public class Main {
                 double obsMaxY = box.getPos().getY() + width;
                 double obsMinY = box.getPos().getY();
                 //Test to Down
-                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                if (((ArmMinY - movingUnit == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - movingUnit == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
                     coincide = true;
                     break;
                 }
@@ -747,15 +789,17 @@ public class Main {
                 double obsMaxY = obs.getRect().getMaxY();
                 double obsMinY = obs.getRect().getMinY();
                 //Test to Down
-                if (((ArmMinY - 0.001 != obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMinY - 0.001 != obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                if (((ArmMinY - movingUnit != obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - movingUnit != obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
                     coincide = true;
                     break;
                 }
             }
-            if (ArmMinY - 0.001 > 0&& coincide==false) {
+            if (ArmMinY - movingUnit > 0&& coincide==false) {
                 MoveState newState = new MoveState();
-                Point2D tempP = new Point2D.Double(XCenter , YCenter-0.001);
+                double tempPposX = round(XCenter,3);
+                double tempPposY = round(YCenter-movingUnit,3);
+                Point2D tempP = new Point2D.Double(tempPposX, tempPposY);
                 newState.setArmLocation(tempP);
                 newState.setMoveDirection("S");
                 newState.setPreMoveState(State);
@@ -787,8 +831,8 @@ public class Main {
                 double obsMaxY = box.getPos().getY() + width;
                 double obsMinY = box.getPos().getY();
                 //Test to Right
-                if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
-                        || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                if (((ArmMaxX + movingUnit == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMaxX + movingUnit == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
                     break;
                 }
@@ -802,15 +846,17 @@ public class Main {
 
 
                 //Test to Right
-                if (((ArmMaxX + 0.001 == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
-                        || (ArmMaxX + 0.001 == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                if (((ArmMaxX + movingUnit == obsMinX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMaxX + movingUnit == obsMinX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
                     break;
                 }
             }
-            if (ArmMaxX + 0.001 < 1&& coincide == false) {
+            if (ArmMaxX + movingUnit < 1&& coincide == false) {
                 MoveState newState = new MoveState();
-                Point2D tempP = new Point2D.Double(XCenter +0.001, YCenter);
+                double tempPposX = round(XCenter +movingUnit,3);
+                double tempPposY = round(YCenter,3);
+                Point2D tempP = new Point2D.Double(tempPposX, tempPposY);
                 newState.setArmLocation(tempP);
                 newState.setMoveDirection("E");
                 newState.setPreMoveState(State);
@@ -833,8 +879,8 @@ public class Main {
                 double obsMaxY = box.getPos().getY() + width;
                 double obsMinY = box.getPos().getY();
                 //Test to Up
-                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                if (((ArmMaxY + movingUnit == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMaxY + movingUnit == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
                     coincide = true;
                     break;
                 }
@@ -846,15 +892,17 @@ public class Main {
                 double obsMaxY = obs.getRect().getMaxY();
                 double obsMinY = obs.getRect().getMinY();
                 //Test to Up
-                if (((ArmMaxY + 0.001 == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMaxY + 0.001 == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                if (((ArmMaxY + movingUnit == obsMinY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMaxY + movingUnit == obsMinY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
                     coincide = true;
                     break;
                 }
             }
-            if (ArmMaxY + 0.001 < 1&& coincide==false) {
+            if (ArmMaxY + movingUnit < 1&& coincide==false) {
                 MoveState newState = new MoveState();
-                Point2D tempP = new Point2D.Double(XCenter, YCenter+0.001);
+                double tempPposX = round(XCenter,3);
+                double tempPposY = round(YCenter+movingUnit,3);
+                Point2D tempP = new Point2D.Double(tempPposX, tempPposY);
                 newState.setArmLocation(tempP);
                 newState.setMoveDirection("N");
                 newState.setPreMoveState(State);
@@ -877,8 +925,8 @@ public class Main {
                 double obsMaxY = box.getPos().getY() + width;
                 double obsMinY = box.getPos().getY();
                 //Test to Left
-                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
-                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                if (((ArmMinX - movingUnit == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMinX - movingUnit == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
                     break;
                 }
@@ -890,15 +938,17 @@ public class Main {
                 double obsMaxY = obs.getRect().getMaxY();
                 double obsMinY = obs.getRect().getMinY();
                 //Test to Left
-                if (((ArmMinX - 0.001 == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
-                        || (ArmMinX - 0.001 == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
+                if (((ArmMinX - movingUnit == obsMaxX && ArmMaxY > obsMinY && ArmMaxY < obsMaxY)
+                        || (ArmMinX - movingUnit == obsMaxX && ArmMinY > obsMinY && ArmMinY < obsMaxY))) {
                     coincide = true;
                     break;
                 }
             }
-            if (ArmMinX - 0.001 > 0&& coincide==false) {
+            if (ArmMinX - movingUnit > 0&& coincide==false) {
                 MoveState newState = new MoveState();
-                Point2D tempP = new Point2D.Double(XCenter-0.001, YCenter);
+                double tempPposX = round(XCenter - movingUnit,3);
+                double tempPposY = round(YCenter,3);
+                Point2D tempP = new Point2D.Double(tempPposX, tempPposY);
                 newState.setArmLocation(tempP);
                 newState.setMoveDirection("W");
                 newState.setPreMoveState(State);
@@ -921,8 +971,8 @@ public class Main {
                 double obsMaxY = box.getPos().getY() + width;
                 double obsMinY = box.getPos().getY();
                 //Test to Down
-                if (((ArmMinY - 0.001 == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMinY - 0.001 == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                if (((ArmMinY - movingUnit == obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - movingUnit == obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
                     coincide = true;
                     break;
                 }
@@ -934,15 +984,17 @@ public class Main {
                 double obsMaxY = obs.getRect().getMaxY();
                 double obsMinY = obs.getRect().getMinY();
                 //Test to Down
-                if (((ArmMinY - 0.001 != obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
-                        || (ArmMinY - 0.001 != obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
+                if (((ArmMinY - movingUnit != obsMaxY && ArmMaxX > obsMinX && ArmMaxX < obsMaxX)
+                        || (ArmMinY - movingUnit != obsMaxY && ArmMinX > obsMinX && ArmMinX < obsMaxX))) {
                     coincide = true;
                     break;
                 }
             }
-            if (ArmMinY - 0.001 > 0&& coincide==false) {
+            if (ArmMinY - movingUnit > 0&& coincide==false) {
                 MoveState newState = new MoveState();
-                Point2D tempP = new Point2D.Double(XCenter , YCenter-0.001);
+                double tempPposX = round(XCenter ,3);
+                double tempPposY = round(YCenter - movingUnit,3);
+                Point2D tempP = new Point2D.Double(tempPposX, tempPposY);
                 newState.setArmLocation(tempP);
                 newState.setMoveDirection("S");
                 newState.setPreMoveState(State);
@@ -975,6 +1027,7 @@ public class Main {
     }
 
     public static void mergeList(List<Box>unmovedBox,List<Box> list1,List<Box> list2,List<Box> list3){
+
         unmovedBox.addAll(list1);
         unmovedBox.addAll(list2);
         unmovedBox.addAll(list3);
@@ -985,7 +1038,9 @@ public class Main {
     public static void output(MoveState state,LinkedList<String> path){
         Stack<String> reversedPath=new Stack<>();
         while(state.getPreMoveState()!=null){
-            if (state.getMoveDirection()!=null){reversedPath.push(state.getMoveDirection());}
+            if (state.getMoveDirection()!=null){
+                reversedPath.push(state.getMoveDirection());
+            }
             state=state.getPreMoveState();
         }
         //输出路径：
@@ -997,5 +1052,15 @@ public class Main {
         R.add("R");
         PathList.add(R);
     }
+
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
+    }
+
 }
 
